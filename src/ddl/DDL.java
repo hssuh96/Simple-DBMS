@@ -89,7 +89,6 @@ public class DDL {
 
 			if (cursor.getSearchKey(KeyForSearch, foundData, null) == OperationStatus.SUCCESS) {
 				if (!checkIfReferenced(cursor2, argTableName)) {
-					
 					cursor.delete();
 					System.out.println("'" + argTableName + "' table is dropped");
 				} else {
@@ -98,7 +97,7 @@ public class DDL {
 			} else
 				System.out.println("No such table");
 		} catch (Exception e) {
-//			 e.printStackTrace();  
+			 e.printStackTrace();  
 		}
 
 		if (cursor != null) cursor.close();
@@ -165,7 +164,7 @@ public class DDL {
 				tableDefinition.print();
 			}
 		} catch (Exception e) {
-//			e.printStackTrace();
+			e.printStackTrace();
 		}
 
 		if (cursor != null) cursor.close();

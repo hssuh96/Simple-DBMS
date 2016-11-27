@@ -14,6 +14,24 @@ class ForeignKeyDefinition {
 		this.referencedColumnNames = referencedColumnNames;
 	}
 	
+	public ForeignKeyDefinition(String foreignKeyDesc) {
+		String[] arr = foreignKeyDesc.split("%");
+		
+		referencedTableName = arr[1];
+		referencingColumnNames = new ArrayList<String>();
+		referencedColumnNames = new ArrayList<String>();
+		
+		String[] arr2 = arr[0].split("/");
+		for (int i = 0 ; i < arr2.length ; i++) {
+			referencingColumnNames.add(arr2[i]);
+		}
+		
+		String[] arr3 = arr[2].split("/");
+		for (int i = 0 ; i < arr3.length ; i++) {
+			referencedColumnNames.add(arr3[i]);
+		}
+	}
+	
 //	public void print() { // for debugging purpose. 나중에 제거할 것
 //		System.out.print("foreign key: ");
 //		for (int i = 0 ; i < referencingColumnNames.size() ; i++) {

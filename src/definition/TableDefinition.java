@@ -34,6 +34,10 @@ public class TableDefinition {
 	private boolean CharLengthErrorFlag = false;
 			
 	
+	/*
+	 * Constructors
+	 */
+	
 	public TableDefinition() {
 		tableName = "";
 		fieldDefinition = new ArrayList<ColumnDefinition>();
@@ -47,47 +51,29 @@ public class TableDefinition {
 		primaryKeyDefinition = new ArrayList<String>();
 		foreignKeyDefinitions = new ArrayList<ForeignKeyDefinition>();
 		
-		String[] arr = schemaValue.split(";");
-		for (int i = 0 ; i < arr.length ; i++) {
-			fieldDefinition.add(new ColumnDefinition(arr[i]));
+		String[] arr = schemaValue.split("#");
+		
+		String[] arr2 = arr[0].split(";");
+		for (int i = 0 ; i < arr2.length ; i++) {
+			fieldDefinition.add(new ColumnDefinition(arr2[i]));
+//			System.out.println(fieldDefinition.get(i).columnName + " " + fieldDefinition.get(i).primaryKeyFlag);
 		}
 		
+		for (int j = 1 ; j < arr.length ; j++) {
+			foreignKeyDefinitions.add(new ForeignKeyDefinition(arr[j]));
+		}
+		
+		// set primaryKeyDefinition
 		for (int i = 0 ; i < fieldDefinition.size() ; i++) {
-			ColumnDefinition column = fieldDefinition.get(i);
-			if (column.primaryKeyFlag == true)
-				primaryKeyDefinition.add(column.columnName);
-			
-			if (column.foreignKeyFlag == true) {
-				String[] arr2 = column.referencedColumnName.split("\\.");
-				addForeignKey(arr2[0], column.columnName, arr2[1]);
-			}
+			if (fieldDefinition.get(i).primaryKeyFlag)
+				primaryKeyDefinition.add(fieldDefinition.get(i).columnName);
 		}
 	}
 	
-	private void addForeignKey(String referencedTableName, String referencingColumnName,
-			String referencedColumnName) {
-		int index = -1;
-		for (int i = 0 ; i < foreignKeyDefinitions.size() ; i++) {
-			if (foreignKeyDefinitions.get(i).referencedTableName.equals(referencedTableName)) {
-				index = i;
-				break;
-			}
-		}
-		
-		if (index == -1) {
-			ArrayList<String> referencingColumnNames = new ArrayList<String>();
-			ArrayList<String> referencedColumnNames = new ArrayList<String>();
-			referencingColumnNames.add(referencingColumnName);
-			referencedColumnNames.add(referencedColumnName);
-			
-			foreignKeyDefinitions.add(new ForeignKeyDefinition(referencedTableName, 
-					referencingColumnNames, referencedColumnNames));
-		}
-		else {
-			foreignKeyDefinitions.get(index).referencingColumnNames.add(referencingColumnName);
-			foreignKeyDefinitions.get(index).referencedColumnNames.add(referencedColumnName);
-		}
-	}
+	
+	/*
+	 * Create Table Definition
+	 */
 	
 	public void setTableName(String str) {
 		tableName = str;
@@ -120,6 +106,11 @@ public class TableDefinition {
 				referencedColumnNames));
 	}
 	
+	
+	/*
+	 * Utilities
+	 */
+	
 	// return true if this table references argTableName. return false otherwise.
 	public boolean checkIfThisReferences(String argTableName) {
 		for (int i = 0 ; i < foreignKeyDefinitions.size() ; i++) {
@@ -128,6 +119,74 @@ public class TableDefinition {
 		}
 		return false;
 	}
+	
+	// find column by columnName and return index. return -1 if column not found.
+	public int findColumn(String str) {
+		for (int i = 0 ; i < fieldDefinition.size() ; i++) {
+			if (fieldDefinition.get(i).columnName.equals(str)) {
+				return i;
+			}
+		}
+		
+		return -1;
+	}
+	
+	// get value String for database
+	public String getSchemaValue() {
+		String str = "";
+		
+		for (int i = 0 ; i < fieldDefinition.size() ; i++) {
+			ColumnDefinition column = fieldDefinition.get(i);
+			
+			str += column.columnName + "/";
+			str += column.dataType + "/";
+			
+			if (column.notNullFlag)
+				str += "1/";
+			else
+				str += "0/";
+			
+			if (column.primaryKeyFlag)
+				str += "1/";
+			else
+				str += "0/";	
+			
+			if (column.foreignKeyFlag)
+				str += "1;";
+			else
+				str += "0;";	
+		}
+		
+		for (int i = 0 ; i < foreignKeyDefinitions.size() ; i++) {
+			str += "#";
+			
+			ForeignKeyDefinition foreignKeyDefinition = foreignKeyDefinitions.get(i);
+			
+			str += getColumnsString(foreignKeyDefinition.referencingColumnNames) + "%";
+			str += foreignKeyDefinition.referencedTableName + "%";
+			str += getColumnsString(foreignKeyDefinition.referencedColumnNames);
+		}
+		
+//		System.out.println("schema value: " + str);
+		return str;
+	}
+	
+	public String getColumnsString(ArrayList<String> arr) {
+		String str = "";
+		
+		str += arr.get(0);
+		
+		for (int i = 1 ; i < arr.size() ; i++) {
+			str += "/" + arr.get(i);
+		}
+		
+		return str;
+	}
+	
+	
+	/*
+	 * Checking validity
+	 */
 	
 	// check validity for column, primary key, foreign key definition
 	public boolean checkValidity() {
@@ -154,17 +213,6 @@ public class TableDefinition {
 				}
 			}
 		}
-	}
-	
-	// find column by columnName and return index. return -1 if column not found.
-	public int findColumn(String str) {
-		for (int i = 0 ; i < fieldDefinition.size() ; i++) {
-			if (fieldDefinition.get(i).columnName.equals(str)) {
-				return i;
-			}
-		}
-		
-		return -1;
 	}
 	
 	// set PrimaryKeyFlag for ColumnDefinition
@@ -262,18 +310,16 @@ public class TableDefinition {
 					}
 					
 					this.fieldDefinition.get(referencingColumnIndex).foreignKeyFlag = true;
-					this.fieldDefinition.get(referencingColumnIndex).referencedColumnName =
-							foreignKeyDefinition.referencedTableName + "." + referencedColumnName;
 				}
 				
-				//TODO
 				// check ReferenceNonPrimaryKeyError (is referencedColumnNames contains all attributes of primary key)
 				if (foreignKeyDefinition.referencedColumnNames.size() !=
 						referencedTableDefinition.primaryKeyDefinition.size()) {
+//					System.out.println("YEAH"); // TODO
+//					System.out.println(foreignKeyDefinition.referencedColumnNames.size() + " " + referencedTableDefinition.primaryKeyDefinition.size());
 					ReferenceNonPrimaryKeyErrorFlag = true;
 					break;
 				}
-				
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -284,39 +330,10 @@ public class TableDefinition {
 		if (myDbEnvironment != null) myDbEnvironment.close();
 	}
 	
-	// get value String for database
-	public String getSchemaValue() {
-		String str = "";
-		
-		for (int i = 0 ; i < fieldDefinition.size() ; i++) {
-			ColumnDefinition column = fieldDefinition.get(i);
-			
-			str += column.columnName + "/";
-			str += column.dataType + "/";
-			
-			if (column.notNullFlag)
-				str += "1/";
-			else
-				str += "0/";
-			
-			if (column.primaryKeyFlag)
-				str += "1/";
-			else
-				str += "0/";
-			
-			if (column.foreignKeyFlag) {
-				str += "1/";
-				str += column.referencedColumnName;
-				str += ";";
-			}
-			else {
-				str += "0;";
-			}
-		}
-		
-//		System.out.println("schema value: " + str);
-		return str;
-	}
+	
+	/*
+	 * Print
+	 */
 	
 	public void printErrorMessage() {
 		if (DuplicateColumnDefErrorFlag)

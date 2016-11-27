@@ -6,7 +6,6 @@ public class ColumnDefinition {
 	public boolean notNullFlag;
 	public boolean primaryKeyFlag;
 	public boolean foreignKeyFlag;
-	public String referencedColumnName; // tableName.columnName format
 	
 	public ColumnDefinition(String columnName, String dataType, boolean notNullFlag) {
 		this.columnName = columnName;
@@ -14,10 +13,11 @@ public class ColumnDefinition {
 		this.notNullFlag = notNullFlag;
 		primaryKeyFlag = false;
 		foreignKeyFlag = false;
-		referencedColumnName = null;
 	}
 	
 	public ColumnDefinition(String columnDesc) {
+//		System.out.println(columnDesc);
+		
 		String[] arr = columnDesc.split("/");
 		
 		columnName = arr[0];
@@ -34,14 +34,10 @@ public class ColumnDefinition {
 		else
 			primaryKeyFlag = false;
 		
-		if (arr[4].equals("1")) {
+		if (arr[4].equals("1"))
 			foreignKeyFlag = true;
-			referencedColumnName = arr[5];
-		}
-		else {
+		else
 			foreignKeyFlag = false;
-			referencedColumnName = null;
-		}
 	}
 	
 	public void print() {
