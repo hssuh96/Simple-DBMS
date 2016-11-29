@@ -13,6 +13,7 @@ import com.sleepycat.je.OperationStatus;
 
 import databaseoperation.DatabaseOperation;
 import definition.TableDefinition;
+import dml.types.DataType;
 
 public class Insert {
 	private String tableName;
@@ -185,14 +186,14 @@ public class Insert {
 			}
 			
 			// TODO : TEST
-			for (int i = 0 ; i < keyBytes.length ; i++) {
-				System.out.print(keyBytes[i] + " ");
-			}
-			System.out.println();
-			for (int i = 0 ; i < dataBytes.length ; i++) {
-				System.out.print(dataBytes[i] + " ");
-			}
-			System.out.println();
+//			for (int i = 0 ; i < keyBytes.length ; i++) {
+//				System.out.print(keyBytes[i] + " ");
+//			}
+//			System.out.println();
+//			for (int i = 0 ; i < dataBytes.length ; i++) {
+//				System.out.print(dataBytes[i] + " ");
+//			}
+//			System.out.println();
 			
 			
 			cursor2 = myDatabase2.openCursor(null, null);

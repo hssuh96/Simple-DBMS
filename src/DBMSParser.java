@@ -5,12 +5,20 @@ import java.util.Locale;
 import definition.TableDefinition;
 import ddl.DDL;
 import dml.Insert;
+import dml.Delete;
 import dml.Value;
+import dml.types.*;
+import dml.booleantree.BaseNode;
+import dml.booleantree.ComparisonPredicateNode;
+import dml.booleantree.NullPredicateNode;
+import dml.booleantree.ExpressionNode;
+import dml.booleantree.EvaluationTree;
 
 public class DBMSParser implements DBMSParserConstants {
   public static TableDefinition tableDefinition;
   public static String argTableName;
   public static Insert insertInstance;
+  public static Delete deleteInstance;
 
   public static final int PRINT_SYNTAX_ERROR = 0;
   public static final int CREATE_TABLE_REQUESTED = 1;
@@ -61,7 +69,7 @@ public class DBMSParser implements DBMSParserConstants {
         insertInstance.executeInsert();
         break;
       case DELETE_REQUESTED:
-        System.out.println("\u005c'DELETE\u005c' requested");
+        deleteInstance.executeDelete();
         break;
       case SELECT_REQUESTED:
         System.out.println("\u005c'SELECT\u005c' requested");
@@ -406,10 +414,11 @@ public class DBMSParser implements DBMSParserConstants {
   }
 
 // table expression  static final public void tableExpression() throws ParseException {
+  EvaluationTree evaluationTree = null;
     fromClause();
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case WHERE:
-      whereClause();
+      evaluationTree = whereClause();
       break;
     default:
       jj_la1[12] = jj_gen;
@@ -452,13 +461,18 @@ public class DBMSParser implements DBMSParserConstants {
     }
   }
 
-// where clause  static final public void whereClause() throws ParseException {
+// where clause  static final public EvaluationTree whereClause() throws ParseException {
+  BaseNode node;
     jj_consume_token(WHERE);
-    booleanValueExpression();
+    node = booleanValueExpression();
+    {if (true) return new EvaluationTree(node);}
+    throw new Error("Missing return statement in function");
   }
 
-// boolean value expression  static final public void booleanValueExpression() throws ParseException {
-    booleanTerm();
+// boolean value expression  static final public BaseNode booleanValueExpression() throws ParseException {
+  BaseNode node;
+  BaseNode node2;
+    node = booleanTerm();
     label_6:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
@@ -470,12 +484,17 @@ public class DBMSParser implements DBMSParserConstants {
         break label_6;
       }
       jj_consume_token(OR);
-      booleanTerm();
+      node2 = booleanTerm();
+          node = new ExpressionNode(node, BooleanOperatorType.OR, node2);
     }
+    {if (true) return node;}
+    throw new Error("Missing return statement in function");
   }
 
-// boolean term  static final public void booleanTerm() throws ParseException {
-    booleanFactor();
+// boolean term  static final public BaseNode booleanTerm() throws ParseException {
+  BaseNode node;
+  BaseNode node2;
+    node = booleanFactor();
     label_7:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
@@ -487,53 +506,73 @@ public class DBMSParser implements DBMSParserConstants {
         break label_7;
       }
       jj_consume_token(AND);
-      booleanFactor();
+      node2 = booleanFactor();
+          node = new ExpressionNode(node, BooleanOperatorType.AND, node2);
     }
+    {if (true) return node;}
+    throw new Error("Missing return statement in function");
   }
 
-// boolean factor  static final public void booleanFactor() throws ParseException {
+// boolean factor  static final public BaseNode booleanFactor() throws ParseException {
+  BooleanOperatorType booleanOperatorType = BooleanOperatorType.AND; // temp value  BaseNode node;
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case NOT:
       jj_consume_token(NOT);
+      booleanOperatorType = BooleanOperatorType.NOT;
       break;
     default:
       jj_la1[17] = jj_gen;
       ;
     }
-    booleanTest();
+    node = booleanTest();
+    if (booleanOperatorType == BooleanOperatorType.NOT) {
+      {if (true) return new ExpressionNode(node, booleanOperatorType);}
+    }
+    else {
+      {if (true) return node;}
+    }
+    throw new Error("Missing return statement in function");
   }
 
-// boolean test  static final public void booleanTest() throws ParseException {
+// boolean test  static final public BaseNode booleanTest() throws ParseException {
+  BaseNode node;
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case INT_VALUE:
     case CHAR_STRING:
     case DATE_VALUE:
     case LEGAL_IDENTIFIER:
-      predicate();
+      node = predicate();
       break;
     case LEFT_PAREN:
-      parenthesizedBooleanExpression();
+      node = parenthesizedBooleanExpression();
       break;
     default:
       jj_la1[18] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
+    {if (true) return node;}
+    throw new Error("Missing return statement in function");
   }
 
-// parenthesized boolean expression  static final public void parenthesizedBooleanExpression() throws ParseException {
+// parenthesized boolean expression  static final public BaseNode parenthesizedBooleanExpression() throws ParseException {
+  BaseNode node;
     jj_consume_token(LEFT_PAREN);
-    booleanValueExpression();
+    node = booleanValueExpression();
     jj_consume_token(RIGHT_PAREN);
+    {if (true) return node;}
+    throw new Error("Missing return statement in function");
   }
 
-// predicate  static final public void predicate() throws ParseException {
+// predicate  static final public BaseNode predicate() throws ParseException {
+  BaseNode predicateNode;
     if (jj_2_2(4)) {
-      comparisonPredicate();
+      // to deal with choice conflict
+              predicateNode = comparisonPredicate();
     } else {
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case LEGAL_IDENTIFIER:
-        nullPredicate();
+        predicateNode = nullPredicate();
         break;
       default:
         jj_la1[19] = jj_gen;
@@ -541,62 +580,88 @@ public class DBMSParser implements DBMSParserConstants {
         throw new ParseException();
       }
     }
+    {if (true) return predicateNode;}
+    throw new Error("Missing return statement in function");
   }
 
-// comparison predicate  static final public void comparisonPredicate() throws ParseException {
-    compOperand();
-    compOp();
-    compOperand();
+// comparison predicate  static final public ComparisonPredicateNode comparisonPredicate() throws ParseException {
+  Value value1;
+  Value value2;
+  ComparisonOperatorType operatorType;
+    value1 = compOperand();
+    operatorType = compOp();
+    value2 = compOperand();
+    {if (true) return new ComparisonPredicateNode(value1, operatorType, value2);}
+    throw new Error("Missing return statement in function");
   }
 
-// comparison operand  static final public void compOperand() throws ParseException {
+// comparison operand  static final public Value compOperand() throws ParseException {
+  String str;
+  String name = "";
+  Value value;
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case INT_VALUE:
     case CHAR_STRING:
     case DATE_VALUE:
-      comparableValue();
+      value = comparableValue();
       break;
     case LEGAL_IDENTIFIER:
       if (jj_2_3(2)) {
-        tableName();
+        // to deal with choice conflict
+                        str = tableName();
+                  name += str;
         jj_consume_token(PERIOD);
       } else {
         ;
       }
-      columnName();
+      str = columnName();
+                name += str;
+                value = new Value();
+                value.setColumn(name);
       break;
     default:
       jj_la1[20] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
+    {if (true) return value;}
+    throw new Error("Missing return statement in function");
   }
 
-// comparison operator  static final public void compOp() throws ParseException {
+// comparison operator  static final public ComparisonOperatorType compOp() throws ParseException {
+  ComparisonOperatorType operatorType;
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case EQUAL_TO:
       jj_consume_token(EQUAL_TO);
+                operatorType = ComparisonOperatorType.EQUAL_TO;
       break;
     case NOT_EQUAL:
       jj_consume_token(NOT_EQUAL);
+                 operatorType = ComparisonOperatorType.NOT_EQUAL;
       break;
     case LESS_THAN:
       jj_consume_token(LESS_THAN);
+                 operatorType = ComparisonOperatorType.LESS_THAN;
       break;
     case GREATER_THAN:
       jj_consume_token(GREATER_THAN);
+                    operatorType = ComparisonOperatorType.GREATER_THAN;
       break;
     case GREATER_THAN_OR_EQUAL_TO:
       jj_consume_token(GREATER_THAN_OR_EQUAL_TO);
+                                operatorType = ComparisonOperatorType.GREATER_THAN_OR_EQUAL_TO;
       break;
     case LESS_THAN_OR_EQUAL_TO:
       jj_consume_token(LESS_THAN_OR_EQUAL_TO);
+                             operatorType = ComparisonOperatorType.LESS_THAN_OR_EQUAL_TO;
       break;
     default:
       jj_la1[21] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
+    {if (true) return operatorType;}
+    throw new Error("Missing return statement in function");
   }
 
 // comparable value  static final public Value comparableValue() throws ParseException {
@@ -624,28 +689,42 @@ public class DBMSParser implements DBMSParserConstants {
     throw new Error("Missing return statement in function");
   }
 
-// null predicate  static final public void nullPredicate() throws ParseException {
+// null predicate  static final public NullPredicateNode nullPredicate() throws ParseException {
+  String str;
+  String name = "";
+  NullOperatorType nullOperatorType;
     if (jj_2_4(2)) {
-      tableName();
+      // to deal with choice conflict
+          str = tableName();
+      name += str;
       jj_consume_token(PERIOD);
     } else {
       ;
     }
-    columnName();
-    nullOperation();
+    str = columnName();
+    name += str;
+    Value value = new Value();
+    value.setColumn(name);
+    nullOperatorType = nullOperation();
+    {if (true) return new NullPredicateNode(value, nullOperatorType);}
+    throw new Error("Missing return statement in function");
   }
 
-// null operation  static final public void nullOperation() throws ParseException {
+// null operation  static final public NullOperatorType nullOperation() throws ParseException {
+  NullOperatorType nullOperatorType = NullOperatorType.IS_NULL;
     jj_consume_token(IS);
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case NOT:
       jj_consume_token(NOT);
+      nullOperatorType = NullOperatorType.IS_NOT_NULL;
       break;
     default:
       jj_la1[23] = jj_gen;
       ;
     }
     jj_consume_token(NULL);
+    {if (true) return nullOperatorType;}
+    throw new Error("Missing return statement in function");
   }
 
 /** * INSERT query */
@@ -728,16 +807,24 @@ public class DBMSParser implements DBMSParserConstants {
 /** * DELETE query */
 
 // delete query  static final public void deleteQuery() throws ParseException {
+  String name;
+  EvaluationTree evaluationTree = null;
     jj_consume_token(DELETE);
     jj_consume_token(FROM);
-    tableName();
+    name = tableName();
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case WHERE:
-      whereClause();
+      evaluationTree = whereClause();
       break;
     default:
       jj_la1[27] = jj_gen;
       ;
+    }
+    if (evaluationTree == null) {
+      deleteInstance = new Delete(name);
+    }
+    else {
+      deleteInstance = new Delete(name, evaluationTree);
     }
   }
 
@@ -776,8 +863,14 @@ public class DBMSParser implements DBMSParserConstants {
     finally { jj_save(3, xla); }
   }
 
-  static private boolean jj_3R_18() {
-    if (jj_scan_token(CHAR_STRING)) return true;
+  static private boolean jj_3_4() {
+    if (jj_3R_9()) return true;
+    if (jj_scan_token(PERIOD)) return true;
+    return false;
+  }
+
+  static private boolean jj_3_2() {
+    if (jj_3R_10()) return true;
     return false;
   }
 
@@ -787,32 +880,28 @@ public class DBMSParser implements DBMSParserConstants {
     return false;
   }
 
-  static private boolean jj_3R_9() {
+  static private boolean jj_3R_22() {
     if (jj_scan_token(LEGAL_IDENTIFIER)) return true;
     return false;
   }
 
-  static private boolean jj_3_1() {
-    if (jj_3R_9()) return true;
-    if (jj_scan_token(PERIOD)) return true;
+  static private boolean jj_3R_23() {
+    if (jj_scan_token(INT_VALUE)) return true;
     return false;
   }
 
-  static private boolean jj_3R_15() {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_17()) {
-    jj_scanpos = xsp;
-    if (jj_3R_18()) {
-    jj_scanpos = xsp;
-    if (jj_3R_19()) return true;
-    }
-    }
+  static private boolean jj_3R_13() {
+    if (jj_3R_21()) return true;
     return false;
   }
 
-  static private boolean jj_3_2() {
-    if (jj_3R_10()) return true;
+  static private boolean jj_3R_25() {
+    if (jj_scan_token(DATE_VALUE)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_24() {
+    if (jj_scan_token(CHAR_STRING)) return true;
     return false;
   }
 
@@ -820,18 +909,25 @@ public class DBMSParser implements DBMSParserConstants {
     Token xsp;
     xsp = jj_scanpos;
     if (jj_3_3()) jj_scanpos = xsp;
-    if (jj_3R_16()) return true;
+    if (jj_3R_22()) return true;
     return false;
   }
 
-  static private boolean jj_3_4() {
-    if (jj_3R_9()) return true;
-    if (jj_scan_token(PERIOD)) return true;
+  static private boolean jj_3R_9() {
+    if (jj_scan_token(LEGAL_IDENTIFIER)) return true;
     return false;
   }
 
-  static private boolean jj_3R_13() {
-    if (jj_3R_15()) return true;
+  static private boolean jj_3R_21() {
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_23()) {
+    jj_scanpos = xsp;
+    if (jj_3R_24()) {
+    jj_scanpos = xsp;
+    if (jj_3R_25()) return true;
+    }
+    }
     return false;
   }
 
@@ -845,35 +941,24 @@ public class DBMSParser implements DBMSParserConstants {
     return false;
   }
 
-  static private boolean jj_3R_16() {
-    if (jj_scan_token(LEGAL_IDENTIFIER)) return true;
+  static private boolean jj_3_1() {
+    if (jj_3R_9()) return true;
+    if (jj_scan_token(PERIOD)) return true;
     return false;
   }
 
-  static private boolean jj_3R_12() {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_scan_token(40)) {
-    jj_scanpos = xsp;
-    if (jj_scan_token(41)) {
-    jj_scanpos = xsp;
-    if (jj_scan_token(42)) {
-    jj_scanpos = xsp;
-    if (jj_scan_token(43)) {
-    jj_scanpos = xsp;
-    if (jj_scan_token(44)) {
-    jj_scanpos = xsp;
-    if (jj_scan_token(45)) return true;
-    }
-    }
-    }
-    }
-    }
+  static private boolean jj_3R_20() {
+    if (jj_scan_token(LESS_THAN_OR_EQUAL_TO)) return true;
     return false;
   }
 
-  static private boolean jj_3R_17() {
-    if (jj_scan_token(INT_VALUE)) return true;
+  static private boolean jj_3R_19() {
+    if (jj_scan_token(GREATER_THAN_OR_EQUAL_TO)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_18() {
+    if (jj_scan_token(GREATER_THAN)) return true;
     return false;
   }
 
@@ -884,8 +969,40 @@ public class DBMSParser implements DBMSParserConstants {
     return false;
   }
 
-  static private boolean jj_3R_19() {
-    if (jj_scan_token(DATE_VALUE)) return true;
+  static private boolean jj_3R_17() {
+    if (jj_scan_token(LESS_THAN)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_16() {
+    if (jj_scan_token(NOT_EQUAL)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_15() {
+    if (jj_scan_token(EQUAL_TO)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_12() {
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_15()) {
+    jj_scanpos = xsp;
+    if (jj_3R_16()) {
+    jj_scanpos = xsp;
+    if (jj_3R_17()) {
+    jj_scanpos = xsp;
+    if (jj_3R_18()) {
+    jj_scanpos = xsp;
+    if (jj_3R_19()) {
+    jj_scanpos = xsp;
+    if (jj_3R_20()) return true;
+    }
+    }
+    }
+    }
+    }
     return false;
   }
 

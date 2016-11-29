@@ -1,8 +1,7 @@
 package dml;
 
 import definition.TableDefinition;
-
-enum DataType {NULL, INT, CHAR, DATE};
+import dml.types.DataType;
 
 public class Value {
 	public DataType dataType;
@@ -33,6 +32,11 @@ public class Value {
 		dataType = DataType.DATE;
 		data = str;
 //		print();
+	}
+	
+	public void setColumn(String str) {
+		dataType = DataType.COLUMN;
+		data = str;
 	}
 	
 	//TODO : TEST
