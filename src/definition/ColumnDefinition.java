@@ -3,7 +3,7 @@ package definition;
 public class ColumnDefinition {
 	public String columnName;
 	public String dataType;
-	public boolean notNullFlag;
+	public boolean notNullFlag; // true if not null
 	public boolean primaryKeyFlag;
 	public boolean foreignKeyFlag;
 	
@@ -38,6 +38,13 @@ public class ColumnDefinition {
 			foreignKeyFlag = true;
 		else
 			foreignKeyFlag = false;
+	}
+	
+	public int getCharLength() {
+		if(dataType.length() > 4)
+			return Integer.parseInt(dataType.substring(5, dataType.length()-1));
+		else
+			return -1;
 	}
 	
 	public void print() {

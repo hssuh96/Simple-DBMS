@@ -15,10 +15,10 @@ import com.sleepycat.je.OperationStatus;
 import databaseoperation.DatabaseOperation;
 
 public class TableDefinition {
-	private String tableName;
-	private ArrayList<ColumnDefinition> fieldDefinition;
-	private ArrayList<String> primaryKeyDefinition;
-	private ArrayList<ForeignKeyDefinition> foreignKeyDefinitions;
+	public String tableName;
+	public ArrayList<ColumnDefinition> fieldDefinition;
+	public ArrayList<String> primaryKeyDefinition;
+	public ArrayList<ForeignKeyDefinition> foreignKeyDefinitions;
 	
 	private boolean DuplicateColumnDefErrorFlag = false; // duplicated column definition
 	private boolean DuplicatePrimaryKeyDefErrorFlag = false; // duplicated primary key definition

@@ -4,10 +4,13 @@ import java.util.Locale;
 
 import definition.TableDefinition;
 import ddl.DDL;
+import dml.Insert;
+import dml.Value;
 
 public class DBMSParser implements DBMSParserConstants {
   public static TableDefinition tableDefinition;
   public static String argTableName;
+  public static Insert insertInstance;
 
   public static final int PRINT_SYNTAX_ERROR = 0;
   public static final int CREATE_TABLE_REQUESTED = 1;
@@ -30,6 +33,7 @@ public class DBMSParser implements DBMSParserConstants {
         executeCommand(PRINT_SYNTAX_ERROR);
         DBMSParser.ReInit(System.in);
       } catch (Exception e) {
+//        e.printStackTrace();
         System.out.println("UnexpectedError");
         System.out.print("DB_2015-11543> ");
         DBMSParser.ReInit(System.in);
@@ -54,7 +58,7 @@ public class DBMSParser implements DBMSParserConstants {
         DDL.executeDescTable(argTableName);
         break;
       case INSERT_REQUESTED:
-        System.out.println("\u005c'INSERT\u005c' requested");
+        insertInstance.executeInsert();
         break;
       case DELETE_REQUESTED:
         System.out.println("\u005c'DELETE\u005c' requested");
@@ -595,22 +599,29 @@ public class DBMSParser implements DBMSParserConstants {
     }
   }
 
-// comparable value  static final public void comparableValue() throws ParseException {
+// comparable value  static final public Value comparableValue() throws ParseException {
+  Token t;
+  Value value = new Value();
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case INT_VALUE:
-      jj_consume_token(INT_VALUE);
+      t = jj_consume_token(INT_VALUE);
+                            value.setInt(t.image);
       break;
     case CHAR_STRING:
-      jj_consume_token(CHAR_STRING);
+      t = jj_consume_token(CHAR_STRING);
+                          value.setChar(t.image);
       break;
     case DATE_VALUE:
-      jj_consume_token(DATE_VALUE);
+      t = jj_consume_token(DATE_VALUE);
+                         value.setDate(t.image);
       break;
     default:
       jj_la1[22] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
+    {if (true) return value;}
+    throw new Error("Missing return statement in function");
   }
 
 // null predicate  static final public void nullPredicate() throws ParseException {
@@ -640,28 +651,40 @@ public class DBMSParser implements DBMSParserConstants {
 /** * INSERT query */
 
 // insert query  static final public void insertQuery() throws ParseException {
+  String tableName;
     jj_consume_token(INSERT);
     jj_consume_token(INTO);
-    tableName();
-    insertColumnsAndSource();
+    tableName = tableName();
+    insertInstance = insertColumnsAndSource();
+    insertInstance.setTableName(tableName);
   }
 
-// insert columns and source  static final public void insertColumnsAndSource() throws ParseException {
+// insert columns and source  static final public Insert insertColumnsAndSource() throws ParseException {
+  ArrayList<Value> valueList;
+  ArrayList<String> columnNameList;
+    insertInstance = new Insert();
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case LEFT_PAREN:
-      columnNameList();
+      columnNameList = columnNameList();
+      insertInstance.setColumnNameList(columnNameList);
       break;
     default:
       jj_la1[24] = jj_gen;
       ;
     }
-    valueList();
+    valueList = valueList();
+    insertInstance.setValueList(valueList);
+    {if (true) return insertInstance;}
+    throw new Error("Missing return statement in function");
   }
 
-// value list  static final public void valueList() throws ParseException {
+// value list  static final public ArrayList<Value> valueList() throws ParseException {
+  ArrayList<Value> valueList = new ArrayList<Value>();
+  Value value;
     jj_consume_token(VALUES);
     jj_consume_token(LEFT_PAREN);
-    value();
+    value = value();
+    valueList.add(value);
     label_8:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
@@ -673,26 +696,33 @@ public class DBMSParser implements DBMSParserConstants {
         break label_8;
       }
       jj_consume_token(COMMA);
-      value();
+      value = value();
+      valueList.add(value);
     }
     jj_consume_token(RIGHT_PAREN);
+    {if (true) return valueList;}
+    throw new Error("Missing return statement in function");
   }
 
-// value  static final public void value() throws ParseException {
+// value  static final public Value value() throws ParseException {
+  Value value = new Value();
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case NULL:
       jj_consume_token(NULL);
+                   value.setNull();
       break;
     case INT_VALUE:
     case CHAR_STRING:
     case DATE_VALUE:
-      comparableValue();
+      value = comparableValue();
       break;
     default:
       jj_la1[26] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
+    {if (true) return value;}
+    throw new Error("Missing return statement in function");
   }
 
 /** * DELETE query */
@@ -746,32 +776,8 @@ public class DBMSParser implements DBMSParserConstants {
     finally { jj_save(3, xla); }
   }
 
-  static private boolean jj_3R_12() {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_scan_token(40)) {
-    jj_scanpos = xsp;
-    if (jj_scan_token(41)) {
-    jj_scanpos = xsp;
-    if (jj_scan_token(42)) {
-    jj_scanpos = xsp;
-    if (jj_scan_token(43)) {
-    jj_scanpos = xsp;
-    if (jj_scan_token(44)) {
-    jj_scanpos = xsp;
-    if (jj_scan_token(45)) return true;
-    }
-    }
-    }
-    }
-    }
-    return false;
-  }
-
-  static private boolean jj_3R_10() {
-    if (jj_3R_11()) return true;
-    if (jj_3R_12()) return true;
-    if (jj_3R_11()) return true;
+  static private boolean jj_3R_18() {
+    if (jj_scan_token(CHAR_STRING)) return true;
     return false;
   }
 
@@ -792,21 +798,21 @@ public class DBMSParser implements DBMSParserConstants {
     return false;
   }
 
-  static private boolean jj_3_2() {
-    if (jj_3R_10()) return true;
-    return false;
-  }
-
   static private boolean jj_3R_15() {
     Token xsp;
     xsp = jj_scanpos;
-    if (jj_scan_token(46)) {
+    if (jj_3R_17()) {
     jj_scanpos = xsp;
-    if (jj_scan_token(47)) {
+    if (jj_3R_18()) {
     jj_scanpos = xsp;
-    if (jj_scan_token(48)) return true;
+    if (jj_3R_19()) return true;
     }
     }
+    return false;
+  }
+
+  static private boolean jj_3_2() {
+    if (jj_3R_10()) return true;
     return false;
   }
 
@@ -815,6 +821,12 @@ public class DBMSParser implements DBMSParserConstants {
     xsp = jj_scanpos;
     if (jj_3_3()) jj_scanpos = xsp;
     if (jj_3R_16()) return true;
+    return false;
+  }
+
+  static private boolean jj_3_4() {
+    if (jj_3R_9()) return true;
+    if (jj_scan_token(PERIOD)) return true;
     return false;
   }
 
@@ -838,9 +850,42 @@ public class DBMSParser implements DBMSParserConstants {
     return false;
   }
 
-  static private boolean jj_3_4() {
-    if (jj_3R_9()) return true;
-    if (jj_scan_token(PERIOD)) return true;
+  static private boolean jj_3R_12() {
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_scan_token(40)) {
+    jj_scanpos = xsp;
+    if (jj_scan_token(41)) {
+    jj_scanpos = xsp;
+    if (jj_scan_token(42)) {
+    jj_scanpos = xsp;
+    if (jj_scan_token(43)) {
+    jj_scanpos = xsp;
+    if (jj_scan_token(44)) {
+    jj_scanpos = xsp;
+    if (jj_scan_token(45)) return true;
+    }
+    }
+    }
+    }
+    }
+    return false;
+  }
+
+  static private boolean jj_3R_17() {
+    if (jj_scan_token(INT_VALUE)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_10() {
+    if (jj_3R_11()) return true;
+    if (jj_3R_12()) return true;
+    if (jj_3R_11()) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_19() {
+    if (jj_scan_token(DATE_VALUE)) return true;
     return false;
   }
 

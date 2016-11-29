@@ -164,7 +164,7 @@ public class DDL {
 				tableDefinition.print();
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+//			e.printStackTrace();
 		}
 
 		if (cursor != null) cursor.close();
