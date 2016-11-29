@@ -1,6 +1,7 @@
 package dml;
 
 import java.io.File;
+import java.util.ArrayList;
 
 import com.sleepycat.je.Cursor;
 import com.sleepycat.je.Database;
@@ -14,6 +15,7 @@ import com.sleepycat.je.OperationStatus;
 import databaseoperation.DatabaseOperation;
 import definition.TableDefinition;
 import dml.booleantree.EvaluationTree;
+import dml.types.ThreeLogic;
 
 public class Delete {
 	private String tableName;
@@ -70,23 +72,54 @@ public class Delete {
 			TableDefinition tableDefinition = new TableDefinition(tableName, schemaValue);
 			
 			
-			// check WhereIncomparableError
+			// check WhereError
+			ArrayList<ColumnInfo> columnsInfo = ColumnInfo.getColumnsInfoFromTableDef(tableDefinition);
+			WhereErrorFlag whereErrorFlag = new WhereErrorFlag();
 			
-			
+			if (evaluationTree != null) {
+				evaluationTree.checkErrorAndUpdateInfo(columnsInfo, whereErrorFlag);
+				
+				if (whereErrorFlag.WhereTableNotSpecifiedFlag) {
+					System.out.println("Where clause try to reference tables which are not specified");
+					throw new Exception();
+				}
+				if (whereErrorFlag.WhereColumnNotExistFlag) {
+					System.out.println("Where clause try to reference non existing column");
+					throw new Exception();
+				}
+				if (whereErrorFlag.WhereAmbiguousReferenceFlag) {
+					System.out.println("Where clause contains ambiguous reference");
+					throw new Exception();
+				}
+				if (whereErrorFlag.WhereIncomparableErrorFlag) {
+					System.out.println("Where clause try to compare incomparable values");
+					throw new Exception();
+				}
+			}
 			
 			cursor2 = myDatabase2.openCursor(null, null);
 			
-//			DatabaseEntry foundKey = new DatabaseEntry();
-//			DatabaseEntry foundData = new DatabaseEntry();
-
-//			if (cursor.getFirst(foundKey, foundData, LockMode.DEFAULT) == OperationStatus.SUCCESS) {
-//				do {
-//					String keyString = new String(foundKey.getData(), "UTF-8");
-//					System.out.println(keyString);
-//				} while (cursor.getNext(foundKey, foundData, LockMode.DEFAULT) == OperationStatus.SUCCESS);
-//			} else
-//				System.out.println("There is no table");
+			DatabaseEntry foundKey = new DatabaseEntry();
+			DatabaseEntry foundData = new DatabaseEntry();
+			
+			int deletedCount = 0;
+			
+			if (cursor2.getFirst(foundKey, foundData, LockMode.DEFAULT) == OperationStatus.SUCCESS) {
+				do {
+					ArrayList<Value> valueList = Conversion.bytesToValues(columnsInfo,
+							foundKey.getData(), foundData.getData());
+					if (evaluationTree == null || evaluationTree.evaluate(valueList) == ThreeLogic.TRUE) {
+						// TODO : should check referential integrity
+						cursor2.delete();
+						deletedCount++;
+					}
+				} while (cursor2.getNext(foundKey, foundData, LockMode.DEFAULT) == OperationStatus.SUCCESS);
+			}
+			
+			System.out.println(deletedCount + "row(s) are deleted");
+			
 		} catch (Exception e) {
+//			e.printStackTrace(); // TODO
 		}
 
 		if (cursor != null) cursor.close();

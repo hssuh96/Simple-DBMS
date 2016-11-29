@@ -1,6 +1,12 @@
 package dml.booleantree;
 
+import java.util.ArrayList;
+
 import definition.TableDefinition;
+import dml.ColumnInfo;
+import dml.Value;
+import dml.WhereErrorFlag;
+import dml.types.ThreeLogic;
 
 public class EvaluationTree {
 	private BaseNode root;
@@ -9,11 +15,11 @@ public class EvaluationTree {
 		this.root = root;
 	}
 	
-	public boolean evaluate(TableDefinition tableDefinition) {
-		return root.evaluate(tableDefinition);
+	public ThreeLogic evaluate(ArrayList<Value> valueList) {
+		return root.evaluate(valueList);
 	}
 	
-	public boolean checkInComparableError(TableDefinition tableDefinition) {
-		return false;
+	public void checkErrorAndUpdateInfo(ArrayList<ColumnInfo> columnsInfo, WhereErrorFlag whereErrorFlag) {
+		root.checkErrorAndUpdateInfo(columnsInfo, whereErrorFlag);
 	}
 }

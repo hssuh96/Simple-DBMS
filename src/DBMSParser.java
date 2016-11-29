@@ -38,6 +38,7 @@ public class DBMSParser implements DBMSParserConstants {
       try {
         parser.command();
       } catch (ParseException e) {
+//        e.printStackTrace(); // TODO
         executeCommand(PRINT_SYNTAX_ERROR);
         DBMSParser.ReInit(System.in);
       } catch (Exception e) {
@@ -609,7 +610,7 @@ public class DBMSParser implements DBMSParserConstants {
       if (jj_2_3(2)) {
         // to deal with choice conflict
                         str = tableName();
-                  name += str;
+                  name += str + ".";
         jj_consume_token(PERIOD);
       } else {
         ;
@@ -696,7 +697,7 @@ public class DBMSParser implements DBMSParserConstants {
     if (jj_2_4(2)) {
       // to deal with choice conflict
           str = tableName();
-      name += str;
+      name += str+".";
       jj_consume_token(PERIOD);
     } else {
       ;

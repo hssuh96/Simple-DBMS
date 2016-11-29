@@ -1,5 +1,7 @@
 package definition;
 
+import dml.types.DataType;
+
 public class ColumnDefinition {
 	public String columnName;
 	public String dataType;
@@ -45,6 +47,15 @@ public class ColumnDefinition {
 			return Integer.parseInt(dataType.substring(5, dataType.length()-1));
 		else
 			return -1;
+	}
+	
+	public DataType getDataType() {
+		if (dataType.equals("int"))
+			return DataType.INT;
+		else if (dataType.equals("date"))
+			return DataType.DATE;
+		else
+			return DataType.CHAR;
 	}
 	
 	public void print() {

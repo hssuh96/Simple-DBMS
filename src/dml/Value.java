@@ -1,5 +1,7 @@
 package dml;
 
+import java.util.Date;
+
 import definition.TableDefinition;
 import dml.types.DataType;
 
@@ -39,12 +41,23 @@ public class Value {
 		data = str;
 	}
 	
+	public int getInt() {
+		return Integer.parseInt(data);
+	}
+	
+	public String getChar() {
+		return data;
+	}
+
+	public Date getDate() {
+		return new Date(Integer.parseInt(data.substring(0, 4)) - 1900,
+				Integer.parseInt(data.substring(5, 7)) - 1, Integer.parseInt(data.substring(8, 10)));
+	}
+	
 	//TODO : TEST
 	public void print() {
 		System.out.println(dataType + " " + data);
 	}
-	
-// public boolean isNull()
 	
 	// 4byte for int, (n)byte for char(n), 10byte for date (NNNN-NN-NN). include NULL flag
 	// NULL flag : 0 if null, 1 otherwise.

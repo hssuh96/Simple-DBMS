@@ -173,7 +173,7 @@ public class Insert {
 			ArrayList<Byte> keyBytesArrayList = new ArrayList<Byte>();
 			ArrayList<Byte> dataBytesArrayList = new ArrayList<Byte>();
 			
-			getByteRepresentation(tableDefinition, valueListOrdered, keyBytesArrayList, dataBytesArrayList);
+			Conversion.getByteRepresentation(tableDefinition, valueListOrdered, keyBytesArrayList, dataBytesArrayList);
 			
 			byte[] keyBytes = new byte[keyBytesArrayList.size()];
 			for (int i = 0 ; i < keyBytes.length ; i++) {
@@ -226,23 +226,5 @@ public class Insert {
 		}
 		
 		return -1;
-	}
-	
-	public void getByteRepresentation(TableDefinition tableDefinition, ArrayList<Value> valueListOrdered,
-			ArrayList<Byte> keyBytesArrayList, ArrayList<Byte> dataBytesArrayList) {
-		for (int i = 0 ; i < valueListOrdered.size() ; i++) {
-			byte[] byteArray = valueListOrdered.get(i).dataToByte(tableDefinition, i);
-			
-			if (tableDefinition.fieldDefinition.get(i).primaryKeyFlag) {
-				for (int j = 0 ; j < byteArray.length ; j++) {
-					keyBytesArrayList.add(new Byte(byteArray[j]));
-				}
-			}
-			else {
-				for (int j = 0 ; j < byteArray.length ; j++) {
-					dataBytesArrayList.add(new Byte(byteArray[j]));
-				}
-			}
-		}
 	}
 }
