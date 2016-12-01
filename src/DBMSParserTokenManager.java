@@ -5,6 +5,7 @@ import definition.TableDefinition;
 import ddl.DDL;
 import dml.Insert;
 import dml.Delete;
+import dml.Select;
 import dml.Value;
 import dml.types.*;
 import dml.booleantree.BaseNode;
@@ -12,6 +13,9 @@ import dml.booleantree.ComparisonPredicateNode;
 import dml.booleantree.NullPredicateNode;
 import dml.booleantree.ExpressionNode;
 import dml.booleantree.EvaluationTree;
+import dml.ReferedTable;
+import dml.SelectedColumn;
+import dml.SelectedList;
 
 /** Token Manager. */
 public class DBMSParserTokenManager implements DBMSParserConstants

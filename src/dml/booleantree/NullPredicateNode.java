@@ -35,7 +35,7 @@ public class NullPredicateNode implements BaseNode {
 	public void checkErrorAndUpdateInfo(ArrayList<ColumnInfo> columnsInfo, WhereErrorFlag whereErrorFlag) {
 		String[] arr = value.data.split("\\.");
 		if (arr.length == 1) { // columnName
-//			System.out.println(arr[0]); // TODO : TEST
+//			System.out.println(arr[0]); // TEST
 			for (int i = 0 ; i < columnsInfo.size() ; i++) {
 				if (columnsInfo.get(i).columnName.equals(arr[0])) { // find
 					if (index != -1) { // ambiguous
@@ -54,7 +54,7 @@ public class NullPredicateNode implements BaseNode {
 			}
 		}
 		else { // tableName.columnName
-//			System.out.println(arr[0] + "  " + arr[1]); // TODO : TEST
+//			System.out.println(arr[0] + "  " + arr[1]); // TEST
 			boolean tableFoundFlag = false;
 			
 			for (int i = 0 ; i < columnsInfo.size() ; i++) {
@@ -71,16 +71,16 @@ public class NullPredicateNode implements BaseNode {
 						}
 					}
 				}
-				
-				if (!tableFoundFlag) {
-					whereErrorFlag.WhereTableNotSpecifiedFlag = true;
-					return;
-				}
-				
-				if (index == -1) { // not found
-					whereErrorFlag.WhereColumnNotExistFlag = true;
-					return;
-				}
+			}
+			
+			if (!tableFoundFlag) {
+				whereErrorFlag.WhereTableNotSpecifiedFlag = true;
+				return;
+			}
+			
+			if (index == -1) { // not found
+				whereErrorFlag.WhereColumnNotExistFlag = true;
+				return;
 			}
 		}
 	}

@@ -2,7 +2,7 @@ package definition;
 
 import java.util.ArrayList;
 
-class ForeignKeyDefinition {
+public class ForeignKeyDefinition {
 	public String referencedTableName;
 	public ArrayList<String> referencingColumnNames;
 	public ArrayList<String> referencedColumnNames;

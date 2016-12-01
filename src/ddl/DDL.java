@@ -11,9 +11,13 @@ import com.sleepycat.je.LockMode;
 import com.sleepycat.je.OperationStatus;
 
 import java.io.File;
+import java.util.ArrayList;
 
 import databaseoperation.DatabaseOperation;
 import definition.TableDefinition;
+import dml.Conversion;
+import dml.Value;
+import dml.types.ThreeLogic;
 
 public class DDL {
 	// create table
@@ -64,6 +68,7 @@ public class DDL {
 		// Environment & Database define
 		Environment myDbEnvironment = null;
 		Database myDatabase = null;
+		Database myDatabase2 = null;
 
 		/* OPENING DB */
 		// Open Database Environment or if not, create one.
@@ -76,9 +81,10 @@ public class DDL {
 		dbConfig.setAllowCreate(true);
 		dbConfig.setSortedDuplicates(true);
 		myDatabase = myDbEnvironment.openDatabase(null, "dbschema", dbConfig);
-
+		
 		Cursor cursor = null;
 		Cursor cursor2 = null;
+		Cursor cursor3 = null;
 
 		try {
 			cursor = myDatabase.openCursor(null, null);
@@ -88,8 +94,17 @@ public class DDL {
 			DatabaseEntry foundData = new DatabaseEntry();
 
 			if (cursor.getSearchKey(KeyForSearch, foundData, null) == OperationStatus.SUCCESS) {
+				myDatabase2 = myDbEnvironment.openDatabase(null, "dbdata."+argTableName, dbConfig);
+				cursor3 = myDatabase2.openCursor(null, null);
+				
 				if (!checkIfReferenced(cursor2, argTableName)) {
 					cursor.delete();
+					if (cursor3.getFirst(KeyForSearch, foundData, LockMode.DEFAULT) == OperationStatus.SUCCESS) {
+						do {
+							cursor3.delete();
+						} while (cursor3.getNext(KeyForSearch, foundData, LockMode.DEFAULT) == OperationStatus.SUCCESS);
+					}
+					
 					System.out.println("'" + argTableName + "' table is dropped");
 				} else {
 					System.out.println("Drop table has failed: '" + argTableName + "' is referenced by other table");
@@ -102,7 +117,9 @@ public class DDL {
 
 		if (cursor != null) cursor.close();
 		if (cursor2 != null) cursor2.close();
+		if (cursor3 != null) cursor3.close();
 		if (myDatabase != null) myDatabase.close();
+		if (myDatabase2 != null) myDatabase2.close();
 		if (myDbEnvironment != null) myDbEnvironment.close();
 	}
 	

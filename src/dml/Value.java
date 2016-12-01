@@ -24,9 +24,18 @@ public class Value {
 //		print();
 	}
 	
-	public void setChar(String str) {
+	public void setChar(String str, boolean quoteFlag) {
 		dataType = DataType.CHAR;
-		data = str.substring(1, str.length() - 1);
+		if (quoteFlag)
+			data = str.substring(1, str.length() - 1);
+		else
+			data = str;
+		
+		for (int i = data.length()-1 ; i >= 0 ; i--) {
+			if (data.charAt(i) == '\0')
+				data = data.substring(0, i);
+		}
+		
 //		print();
 	}
 
@@ -54,10 +63,10 @@ public class Value {
 				Integer.parseInt(data.substring(5, 7)) - 1, Integer.parseInt(data.substring(8, 10)));
 	}
 	
-	//TODO : TEST
-	public void print() {
-		System.out.println(dataType + " " + data);
-	}
+	//TEST
+//	public void print() {
+//		System.out.println(dataType + " " + data);
+//	}
 	
 	// 4byte for int, (n)byte for char(n), 10byte for date (NNNN-NN-NN). include NULL flag
 	// NULL flag : 0 if null, 1 otherwise.

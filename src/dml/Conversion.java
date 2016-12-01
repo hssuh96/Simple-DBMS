@@ -23,10 +23,40 @@ public class Conversion {
 				}
 			}
 		}
+//		if (keyBytesArrayList.size() == 0)
+			
+		
+		// TODO : TEST
+//		for (int i = 0 ; i < keyBytesArrayList.size() ; i++)
+//			System.out.print(keyBytesArrayList.get(i));
+//		System.out.println();
 	}
 	
+	public static byte[] getByteRepresentation(TableDefinition referedTableDefinition, ArrayList<Value> valueListOrdered) {
+		ArrayList<Byte> byteArrayList = new ArrayList<Byte>();
+		int k = 0;
+		for (int i = 0 ; i < referedTableDefinition.fieldDefinition.size() ; i++) {
+			if (referedTableDefinition.fieldDefinition.get(i).primaryKeyFlag) {
+				byte[] byteArrayTemp = valueListOrdered.get(k).dataToByte(referedTableDefinition, i);
+				k++;
+				for (int j = 0 ; j < byteArrayTemp.length ; j++) {
+					byteArrayList.add(new Byte(byteArrayTemp[j]));
+				}
+			}
+		}
+		
+		byte[] resultByte = new byte[byteArrayList.size()];
+		
+		for (int i = 0 ; i < resultByte.length ; i++) {
+			resultByte[i] = byteArrayList.get(i);
+		}
+		
+		return resultByte;
+	}
+	
+	// TODO : check for empty primary key tables
 	public static ArrayList<Value> bytesToValues(ArrayList<ColumnInfo> columnsInfo,
-			byte[] keyByteArray, byte[] dataByteArray) {
+			byte[] keyByteArray, byte[] dataByteArray) { // should give concatenated byte array if many tables
 		ArrayList<Value> valueList = new ArrayList<Value>();
 		
 		IndexSaver index1 = new IndexSaver();
@@ -65,7 +95,7 @@ public class Conversion {
 			value.setDate(new String(subBytes(byteArray, index, columnInfo.dataLength)));
 		}
 		else { // CHAR
-			value.setDate(new String(subBytes(byteArray, index, columnInfo.dataLength)));
+			value.setChar(new String(subBytes(byteArray, index, columnInfo.dataLength)), false);
 		}
 		
 		return value;

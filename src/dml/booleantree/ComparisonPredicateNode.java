@@ -212,6 +212,7 @@ public class ComparisonPredicateNode implements BaseNode {
 	@Override
 	public void checkErrorAndUpdateInfo(ArrayList<ColumnInfo> columnsInfo, WhereErrorFlag whereErrorFlag) {
 		if (value1.dataType == DataType.COLUMN) { // Data Type is COLUMN
+//			System.out.println(value1.data); // TEST
 			String[] arr = value1.data.split("\\.");
 			if (arr.length == 1) { // columnName
 				for (int i = 0 ; i < columnsInfo.size() ; i++) {
@@ -250,16 +251,16 @@ public class ComparisonPredicateNode implements BaseNode {
 							}
 						}
 					}
-					
-					if (!tableFoundFlag) {
-						whereErrorFlag.WhereTableNotSpecifiedFlag = true;
-						return;
-					}
-					
-					if (index1 == -1) { // not found
-						whereErrorFlag.WhereColumnNotExistFlag = true;
-						return;
-					}
+				}
+				
+				if (!tableFoundFlag) {
+					whereErrorFlag.WhereTableNotSpecifiedFlag = true;
+					return;
+				}
+				
+				if (index1 == -1) { // not found
+					whereErrorFlag.WhereColumnNotExistFlag = true;
+					return;
 				}
 			}
 		}

@@ -12,6 +12,7 @@ import com.sleepycat.je.EnvironmentConfig;
 import com.sleepycat.je.OperationStatus;
 
 import databaseoperation.DatabaseOperation;
+import definition.ForeignKeyDefinition;
 import definition.TableDefinition;
 import dml.types.DataType;
 
@@ -19,6 +20,7 @@ public class Insert {
 	private String tableName;
 	private ArrayList<Value> valueList = null;
 	private ArrayList<String> columnNameList = null;
+	private ArrayList<String> newColumnNameList = null;
 
 	public void setTableName(String str) {
 		tableName = str;
@@ -33,7 +35,7 @@ public class Insert {
 	}
 
 	public void executeInsert() {
-		//TODO : TEST
+		//TEST
 //		System.out.println("executeInsert called");
 //		System.out.println(tableName);
 //		if (columnNameList != null) {
@@ -68,8 +70,11 @@ public class Insert {
 		dbConfig2.setSortedDuplicates(true);
 		myDatabase2 = myDbEnvironment.openDatabase(null, "dbdata."+tableName, dbConfig);
 
+		Database myDatabase3 = null;
+		
 		Cursor cursor = null;
 		Cursor cursor2 = null;
+		Cursor cursorReferTable = null;
 
 		try {
 			cursor = myDatabase.openCursor(null, null);
@@ -87,12 +92,14 @@ public class Insert {
 			
 			// ordering valueListOrdered
 			if (columnNameList == null) { // columns not specified
+				newColumnNameList = new ArrayList<String>();
 				if (valueList.size() != tableDefinition.fieldDefinition.size()) { // check size
 					System.out.println("Insertion has failed: Types are not matched");
 					throw new Exception();
 				}
 				for (int i = 0 ; i < valueList.size() ; i++) { // same as valueList
 					valueListOrdered.add(valueList.get(i));
+					newColumnNameList.add(tableDefinition.fieldDefinition.get(i).columnName);
 				}
 			}
 			else { // columns specified
@@ -111,7 +118,7 @@ public class Insert {
 				}
 				
 				for (int i = 0 ; i < tableDefinition.fieldDefinition.size() ; i++) {
-					int index = findValueIndexByColumnName(tableDefinition.fieldDefinition.get(i).columnName);
+					int index = findValueIndexByColumnName(columnNameList, tableDefinition.fieldDefinition.get(i).columnName);
 					
 					if (index == -1) { // not found, put NULL
 						valueListOrdered.add(new Value());
@@ -161,13 +168,60 @@ public class Insert {
 				}
 			}
 
-			// TODO : TEST
+			//TEST
 //			for (int i = 0 ; i < valueListOrdered.size() ; i++) {
 //				valueListOrdered.get(i).print();
 //			}
 
 
-			// TODO :check InsertReferentialIntegrityError
+			// check InsertReferentialIntegrityError
+			for (int i = 0 ; i < tableDefinition.foreignKeyDefinitions.size() ; i++) {
+				ForeignKeyDefinition foreignKeyDefinition = tableDefinition.foreignKeyDefinitions.get(i);
+				ArrayList<Value> foreignKeyValueListOrdered = new ArrayList<Value>();
+				
+				String referedTableschemaValue = DatabaseOperation.searchTableSchemaByName(cursor,
+						foreignKeyDefinition.referencedTableName);
+				
+				if (schemaValue == null) {
+					System.out.println("Unexpected Error : there is no refered table");
+					throw new Exception();
+				}
+				TableDefinition referedTableDefinition = new TableDefinition(foreignKeyDefinition.referencedTableName,
+						referedTableschemaValue);
+				
+				boolean foreignKeyNullFlag = false;
+				// get foreignKeyValueListOrdered
+				for (int j = 0 ; j < referedTableDefinition.fieldDefinition.size() ; j++) {
+					if (referedTableDefinition.fieldDefinition.get(j).primaryKeyFlag) {
+						String currColumnName = findColumnNameOfThisForeignKey(foreignKeyDefinition,
+								referedTableDefinition.fieldDefinition.get(j).columnName);
+						int index = findValueIndexByColumnName(newColumnNameList, currColumnName);
+						if (index == -1) { // not found, put NULL
+							foreignKeyValueListOrdered.add(new Value());
+							foreignKeyNullFlag = true;
+						}
+						else {
+							if (valueList.get(index).dataType == DataType.NULL)
+								foreignKeyNullFlag = true;
+							foreignKeyValueListOrdered.add(valueList.get(index)); // put valueList[index]
+						}
+					}
+				}
+				if (!foreignKeyNullFlag) {
+					byte[] foreignKeyBytes = Conversion.getByteRepresentation(referedTableDefinition, foreignKeyValueListOrdered);
+					
+					myDatabase3 = myDbEnvironment.openDatabase(null, "dbdata."+referedTableDefinition.tableName, dbConfig);
+					cursorReferTable = myDatabase3.openCursor(null, null);
+					
+					DatabaseEntry KeyForSearch = new DatabaseEntry(foreignKeyBytes);
+					DatabaseEntry foundData = new DatabaseEntry();
+					
+					if (cursorReferTable.getSearchKey(KeyForSearch, foundData, null) != OperationStatus.SUCCESS) {
+						System.out.println("Insertion has failed: Referential integrity violation");
+						throw new Exception();
+					}
+				}
+			}
 			
 			// check InsertDuplicatePrimaryKeyError and put data
 			ArrayList<Byte> keyBytesArrayList = new ArrayList<Byte>();
@@ -185,7 +239,7 @@ public class Insert {
 				dataBytes[i] = dataBytesArrayList.get(i);
 			}
 			
-			// TODO : TEST
+			// TEST
 //			for (int i = 0 ; i < keyBytes.length ; i++) {
 //				System.out.print(keyBytes[i] + " ");
 //			}
@@ -200,12 +254,19 @@ public class Insert {
 			
 			DatabaseEntry key = new DatabaseEntry(keyBytes);
 			DatabaseEntry data = new DatabaseEntry(dataBytes);
-
-			if (cursor2.putNoOverwrite(key, data) == OperationStatus.KEYEXIST)
-				System.out.println("Insertion has failed: Primary key duplication");
-			else
-				System.out.println("The row is inserted");
 			
+//			System.out.println(new String(key.getData())); //TEST
+			
+			if (key.getData().length == 0) {
+				cursor2.put(key, data);
+				System.out.println("The row is inserted");
+			}
+			else {
+				if (cursor2.putNoOverwrite(key, data) == OperationStatus.KEYEXIST)
+					System.out.println("Insertion has failed: Primary key duplication");
+				else
+					System.out.println("The row is inserted");
+			}
 		}
 		catch (Exception e) {
 //			e.printStackTrace();
@@ -213,12 +274,14 @@ public class Insert {
 		
 		if (cursor != null) cursor.close();
 		if (cursor2 != null) cursor2.close();
+		if (cursorReferTable != null) cursorReferTable.close();
 		if (myDatabase != null) myDatabase.close();
 		if (myDatabase2 != null) myDatabase2.close();
+		if (myDatabase3 != null) myDatabase3.close();
 		if (myDbEnvironment != null) myDbEnvironment.close();
 	}
 	
-	public int findValueIndexByColumnName(String columnName) {
+	public int findValueIndexByColumnName(ArrayList<String> columnNameList, String columnName) {
 		for (int i = 0 ; i < columnNameList.size() ; i++) {
 			if (columnNameList.get(i).equals(columnName)) {
 				return i;
@@ -226,5 +289,14 @@ public class Insert {
 		}
 		
 		return -1;
+	}
+	
+	public String findColumnNameOfThisForeignKey(ForeignKeyDefinition foreignKeyDefinition, String referedColumnName) {
+		for (int i = 0 ; i < foreignKeyDefinition.referencedColumnNames.size() ; i++) {
+			if (foreignKeyDefinition.referencedColumnNames.get(i).equals(referedColumnName))
+				return foreignKeyDefinition.referencingColumnNames.get(i);
+		}
+		
+		return null;
 	}
 }

@@ -41,4 +41,66 @@ public class ColumnInfo {
 		
 		return columnsInfo;
 	}
+	
+	public static ArrayList<ColumnInfo> getColumnsInfoFromTableDef(ArrayList<TableDefinition> tableDefinitions,
+			ArrayList<ReferedTable> referedTableList) {
+		ArrayList<ColumnInfo> columnsInfo = new ArrayList<ColumnInfo>();
+		
+		for (int i = 0 ; i < tableDefinitions.size() ; i++) {
+			TableDefinition tableDefinition = tableDefinitions.get(i);
+			for (int j = 0 ; j < tableDefinition.fieldDefinition.size() ; j++) {
+				ColumnDefinition columnDefinition = tableDefinition.fieldDefinition.get(j);
+				
+				int dataLength;
+				
+				if (columnDefinition.getDataType() == DataType.INT)
+					dataLength = 4;
+				else if (columnDefinition.getDataType() == DataType.DATE)
+					dataLength = 10;
+				else
+					dataLength = columnDefinition.getCharLength();
+				
+				String tableName = tableDefinition.tableName;
+				
+				if (referedTableList.get(i).renameFlag)
+					tableName = referedTableList.get(i).newName;
+				
+				columnsInfo.add(new ColumnInfo(tableName,
+						columnDefinition.columnName, columnDefinition.getDataType(), dataLength, columnDefinition.primaryKeyFlag));
+			}
+		}
+		
+		return columnsInfo;
+	}
+	
+	public static ArrayList<ColumnInfo> getColumnsInfoFromTableDef(ArrayList<TableDefinition> tableDefinitions) {
+		ArrayList<ColumnInfo> columnsInfo = new ArrayList<ColumnInfo>();
+		
+		for (int i = 0 ; i < tableDefinitions.size() ; i++) {
+			TableDefinition tableDefinition = tableDefinitions.get(i);
+			for (int j = 0 ; j < tableDefinition.fieldDefinition.size() ; j++) {
+				ColumnDefinition columnDefinition = tableDefinition.fieldDefinition.get(j);
+				
+				int dataLength;
+				
+				if (columnDefinition.getDataType() == DataType.INT)
+					dataLength = 4;
+				else if (columnDefinition.getDataType() == DataType.DATE)
+					dataLength = 10;
+				else
+					dataLength = columnDefinition.getCharLength();
+				
+				String tableName = tableDefinition.tableName;
+				
+				columnsInfo.add(new ColumnInfo(tableName,
+						columnDefinition.columnName, columnDefinition.getDataType(), dataLength, columnDefinition.primaryKeyFlag));
+			}
+		}		
+		
+		return columnsInfo;
+	}
+	
+	public void print() {
+		System.out.println("table name: " + tableName + " column name: " + columnName + " dataType: " + dataType);
+	}
 }

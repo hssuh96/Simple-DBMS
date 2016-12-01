@@ -103,23 +103,39 @@ public class Delete {
 			DatabaseEntry foundData = new DatabaseEntry();
 			
 			int deletedCount = 0;
+			int notDeletedCount = 0;
 			
 			if (cursor2.getFirst(foundKey, foundData, LockMode.DEFAULT) == OperationStatus.SUCCESS) {
 				do {
 					ArrayList<Value> valueList = Conversion.bytesToValues(columnsInfo,
 							foundKey.getData(), foundData.getData());
 					if (evaluationTree == null || evaluationTree.evaluate(valueList) == ThreeLogic.TRUE) {
-						// TODO : should check referential integrity
-						cursor2.delete();
-						deletedCount++;
+						if (checkReferentialIntegrity(tableName)) {
+							cursor2.delete();
+							ArrayList<Value> primaryKeyValueList = new ArrayList<Value>(); // TODO : create primaryKeyValueList
+							
+//							cascadeDelete(tableDefinition, tableName, primaryKeyValueList);
+							deletedCount++;
+						}
+						else {
+							notDeletedCount++;
+						}
+						/*
+						 * ArrayList<Value> primaryKey
+						 * boolean checkReferentialIntegrity(Cursor cursor, tableName) : using schema value
+						 * cascadeD elete(Cursor cursor, ArrayList<Value> )
+						 */
 					}
 				} while (cursor2.getNext(foundKey, foundData, LockMode.DEFAULT) == OperationStatus.SUCCESS);
 			}
 			
 			System.out.println(deletedCount + "row(s) are deleted");
 			
+			if (notDeletedCount > 0)
+				System.out.println(notDeletedCount + "row(s) are not deleted due to referential integrity");
+			
 		} catch (Exception e) {
-//			e.printStackTrace(); // TODO
+//			e.printStackTrace(); // TEST
 		}
 
 		if (cursor != null) cursor.close();
@@ -127,5 +143,15 @@ public class Delete {
 		if (myDatabase != null) myDatabase.close();
 		if (myDatabase2 != null) myDatabase2.close();
 		if (myDbEnvironment != null) myDbEnvironment.close();
+	}
+	
+	// check if the table that referencing tableName has Not Null foreign key exists. if not, return true.
+	public static boolean checkReferentialIntegrity(String tableName) {
+		// TODO
+		return true;
+	}
+	
+	public static void cascadeDelete(String tableName, ArrayList<Value> primaryKeyValueList) {
+		
 	}
 }
