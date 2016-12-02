@@ -62,7 +62,20 @@ public class Conversion {
 		IndexSaver index1 = new IndexSaver();
 		IndexSaver index2 = new IndexSaver();
 		
+		String currentTableName = "";
+		boolean PrimaryKeyExistFlag = true;
+		
 		for (int i = 0 ; i < columnsInfo.size() ; i++) {
+			if (!columnsInfo.get(i).tableName.equals(currentTableName)) {
+				if (!PrimaryKeyExistFlag)
+					index1.index += 4;
+				
+				currentTableName = columnsInfo.get(i).tableName;
+				PrimaryKeyExistFlag = false;
+			}
+			if (columnsInfo.get(i).primaryKeyFlag)
+				PrimaryKeyExistFlag = true;
+			
 			valueList.add(getValue(keyByteArray, dataByteArray, index1, index2, columnsInfo.get(i)));
 		}
 		

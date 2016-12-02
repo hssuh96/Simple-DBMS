@@ -257,7 +257,21 @@ public class Insert {
 //			System.out.println(new String(key.getData())); //TEST
 			
 			if (key.getData().length == 0) {
-				cursor2.put(key, data);
+				byte[] keyAlternative = new byte[4];
+				int dataInt = 0;
+				keyAlternative[0] = (byte)(dataInt >> 24);
+				keyAlternative[1] = (byte)(dataInt >> 16);
+				keyAlternative[2] = (byte)(dataInt >> 8);
+				keyAlternative[3] = (byte)(dataInt);
+				
+				while(cursor2.putNoOverwrite(new DatabaseEntry(keyAlternative), data) == OperationStatus.KEYEXIST) {
+					dataInt++;
+					keyAlternative[0] = (byte)(dataInt >> 24);
+					keyAlternative[1] = (byte)(dataInt >> 16);
+					keyAlternative[2] = (byte)(dataInt >> 8);
+					keyAlternative[3] = (byte)(dataInt);
+				}
+				
 				System.out.println("The row is inserted");
 			}
 			else {
