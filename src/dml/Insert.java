@@ -218,8 +218,13 @@ public class Insert {
 					
 					if (cursorReferTable.getSearchKey(KeyForSearch, foundData, null) != OperationStatus.SUCCESS) {
 						System.out.println("Insertion has failed: Referential integrity violation");
+						if (cursorReferTable != null) cursorReferTable.close();
+						if (myDatabase3 != null) myDatabase3.close();
 						throw new Exception();
 					}
+					
+					if (cursorReferTable != null) cursorReferTable.close();
+					if (myDatabase3 != null) myDatabase3.close();
 				}
 			}
 			
