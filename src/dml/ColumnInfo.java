@@ -100,6 +100,15 @@ public class ColumnInfo {
 		return columnsInfo;
 	}
 	
+	public static int getIndexFromColumnsInfoByName(ArrayList<ColumnInfo> columnsInfo, String columnName) {
+		for (int i = 0 ; i < columnsInfo.size() ; i++) {
+			if (columnsInfo.get(i).columnName.equals(columnName))
+				return i;
+		}
+		
+		return -1;
+	}
+	
 	public void print() {
 		System.out.println("table name: " + tableName + " column name: " + columnName + " dataType: " + dataType);
 	}

@@ -162,7 +162,6 @@ public class Insert {
 			for (int i = 0 ; i < valueListOrdered.size() ; i++) {
 				if (valueListOrdered.get(i).dataType == DataType.CHAR
 						&& valueListOrdered.get(i).data.length() > tableDefinition.fieldDefinition.get(i).getCharLength()) {
-					System.out.println(valueListOrdered.get(i).data);
 					valueListOrdered.get(i).data =
 							valueListOrdered.get(i).data.substring(0, tableDefinition.fieldDefinition.get(i).getCharLength());
 				}

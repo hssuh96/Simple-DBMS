@@ -268,8 +268,6 @@ public class ComparisonPredicateNode implements BaseNode {
 			operationDataType = value1.dataType;
 		}
 		
-		
-		
 		if (value2.dataType == DataType.COLUMN) { // just check when data type is column
 			String[] arr = value2.data.split("\\.");
 			if (arr.length == 1) { // columnName

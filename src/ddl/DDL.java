@@ -141,8 +141,7 @@ public class DDL {
 					return true;
 				
 			} while (cursor.getNext(foundKey, foundData, LockMode.DEFAULT) == OperationStatus.SUCCESS);
-		} else
-			System.out.println("There is no table");
+		}
 		
 		return false;
 	}

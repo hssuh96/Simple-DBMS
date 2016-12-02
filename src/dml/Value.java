@@ -9,12 +9,21 @@ public class Value {
 	public DataType dataType;
 	public String data = null;
 	
+	public boolean isEqual(Value value) {
+		if (dataType != value.dataType)
+			return false;
+		if (!data.equals(value.data))
+			return false;
+		return true;
+	}
+	
 	public Value() {
 		dataType = DataType.NULL;
 	}
 	
 	public void setNull() {
 		dataType = DataType.NULL;
+		data = null;
 //		print();
 	}
 	

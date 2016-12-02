@@ -13,6 +13,7 @@ import com.sleepycat.je.LockMode;
 import com.sleepycat.je.OperationStatus;
 
 import databaseoperation.DatabaseOperation;
+import definition.ForeignKeyDefinition;
 import definition.TableDefinition;
 import dml.booleantree.EvaluationTree;
 import dml.types.ThreeLogic;
@@ -37,6 +38,7 @@ public class Delete {
 		Environment myDbEnvironment = null;
 		Database myDatabase = null;
 		Database myDatabase2 = null;
+		Database myDatabase3 = null;
 
 		/* OPENING DB */
 		// Open Database Environment or if not, create one.
@@ -58,6 +60,7 @@ public class Delete {
 
 		Cursor cursor = null;
 		Cursor cursor2 = null;
+		Cursor cursor3 = null;
 		
 		try {
 			cursor = myDatabase.openCursor(null, null);
@@ -110,29 +113,24 @@ public class Delete {
 					ArrayList<Value> valueList = Conversion.bytesToValues(columnsInfo,
 							foundKey.getData(), foundData.getData());
 					if (evaluationTree == null || evaluationTree.evaluate(valueList) == ThreeLogic.TRUE) {
-						if (checkReferentialIntegrity(tableName)) {
+						if (checkReferentialIntegrity(cursor, myDbEnvironment, dbConfig,
+								myDatabase3, cursor3, tableName, columnsInfo, valueList)) {
 							cursor2.delete();
-							ArrayList<Value> primaryKeyValueList = new ArrayList<Value>(); // TODO : create primaryKeyValueList
-							
-//							cascadeDelete(tableDefinition, tableName, primaryKeyValueList);
+							cascadeDelete(cursor, myDbEnvironment, dbConfig,
+									myDatabase3, cursor3, tableName, columnsInfo, valueList);
 							deletedCount++;
 						}
 						else {
 							notDeletedCount++;
 						}
-						/*
-						 * ArrayList<Value> primaryKey
-						 * boolean checkReferentialIntegrity(Cursor cursor, tableName) : using schema value
-						 * cascadeD elete(Cursor cursor, ArrayList<Value> )
-						 */
 					}
 				} while (cursor2.getNext(foundKey, foundData, LockMode.DEFAULT) == OperationStatus.SUCCESS);
 			}
 			
-			System.out.println(deletedCount + "row(s) are deleted");
+			System.out.println(deletedCount + " row(s) are deleted");
 			
 			if (notDeletedCount > 0)
-				System.out.println(notDeletedCount + "row(s) are not deleted due to referential integrity");
+				System.out.println(notDeletedCount + " row(s) are not deleted due to referential integrity");
 			
 		} catch (Exception e) {
 //			e.printStackTrace(); // TEST
@@ -140,18 +138,204 @@ public class Delete {
 
 		if (cursor != null) cursor.close();
 		if (cursor2 != null) cursor2.close();
+		if (cursor3 != null) cursor3.close();
 		if (myDatabase != null) myDatabase.close();
 		if (myDatabase2 != null) myDatabase2.close();
+		if (myDatabase3 != null) myDatabase3.close();
 		if (myDbEnvironment != null) myDbEnvironment.close();
 	}
 	
 	// check if the table that referencing tableName has Not Null foreign key exists. if not, return true.
-	public static boolean checkReferentialIntegrity(String tableName) {
-		// TODO
+	// return true if can delete, false if not.
+	public static boolean checkReferentialIntegrity(Cursor cursor, Environment myDbEnvironment,
+			DatabaseConfig dbConfig, Database myDatabase3, Cursor cursor3, String tableName,
+			ArrayList<ColumnInfo> columnsInfo, ArrayList<Value> valueList) throws Exception {
+		// TEST
+//		for (int i = 0 ; i < valueList.size() ; i++) {
+//			System.out.print(valueList.get(i).data + "		");
+//		}
+//		System.out.println();
+		
+		DatabaseEntry foundKey = new DatabaseEntry();
+		DatabaseEntry foundData = new DatabaseEntry();
+
+		// iterating over tables and check if it references tableName
+		if (cursor.getFirst(foundKey, foundData, LockMode.DEFAULT) == OperationStatus.SUCCESS) {
+			do {
+				String keyString = new String(foundKey.getData(), "UTF-8");
+				String dataString = new String(foundData.getData(), "UTF-8");
+				
+				// create TableDefinition Object by dataString
+				TableDefinition tableDefinition = new TableDefinition(keyString, dataString);
+				int index = -1;
+				
+				for (int i = 0 ; i < tableDefinition.foreignKeyDefinitions.size() ; i++) {
+					ForeignKeyDefinition foreignKeyDefinition = tableDefinition.foreignKeyDefinitions.get(i);
+					if (foreignKeyDefinition.referencedTableName.equals(tableName)) {
+						index = i;
+					}
+				}
+				
+				if (index != -1) {
+					ForeignKeyDefinition foreignKeyDefinition = tableDefinition.foreignKeyDefinitions.get(index);
+					
+					myDatabase3 = myDbEnvironment.openDatabase(null, "dbdata."+keyString, dbConfig);
+					cursor3 = myDatabase3.openCursor(null, null);
+					
+					DatabaseEntry foundKey2 = new DatabaseEntry();
+					DatabaseEntry foundData2 = new DatabaseEntry();
+					
+					ArrayList<ColumnInfo> columnsInfo2 = ColumnInfo.getColumnsInfoFromTableDef(tableDefinition);
+					
+					if (cursor3.getFirst(foundKey2, foundData2, LockMode.DEFAULT) == OperationStatus.SUCCESS) {
+						do {
+							String keyString2 = new String(foundKey2.getData(), "UTF-8");
+							
+							ArrayList<Value> valueList2 = Conversion.bytesToValues(columnsInfo2,
+									foundKey2.getData(), foundData2.getData());
+							
+							// TEST
+//							for (int i = 0 ; i < valueList2.size() ; i++) {
+//								System.out.print(valueList2.get(i).data + "		");
+//							}
+							
+							if (isForeignKeyEqual(foreignKeyDefinition, columnsInfo, valueList, columnsInfo2, valueList2)) {
+								for (int j = 0 ; j < foreignKeyDefinition.referencingColumnNames.size() ; j++) {
+									int index2 = tableDefinition.findColumn(foreignKeyDefinition.referencingColumnNames.get(j));
+									if (tableDefinition.fieldDefinition.get(index2).notNullFlag) {
+										if (cursor3 != null) cursor3.close();
+										if (myDatabase3 != null) myDatabase3.close();
+										return false;
+									}
+								}
+							}
+							
+						} while (cursor3.getNext(foundKey2, foundData2, LockMode.DEFAULT) == OperationStatus.SUCCESS);
+					}
+					
+					// re arrange valueList
+					
+					if (cursor3 != null) cursor3.close();
+					if (myDatabase3 != null) myDatabase3.close();
+				}
+				
+			} while (cursor.getNext(foundKey, foundData, LockMode.DEFAULT) == OperationStatus.SUCCESS);
+		}
+		
 		return true;
 	}
 	
-	public static void cascadeDelete(String tableName, ArrayList<Value> primaryKeyValueList) {
+	// columnsInfo is referenced and columnsInfo2 is referencing
+	public static boolean isForeignKeyEqual(ForeignKeyDefinition foreignKeyDefinition,
+			ArrayList<ColumnInfo> columnsInfo, ArrayList<Value> valueList,
+			ArrayList<ColumnInfo> columnsInfo2, ArrayList<Value> valueList2) {
+		for (int i = 0 ; i < foreignKeyDefinition.referencingColumnNames.size() ; i++) {
+			int index1 = ColumnInfo.getIndexFromColumnsInfoByName(columnsInfo,
+					foreignKeyDefinition.referencedColumnNames.get(i));
+			
+			int index2 = ColumnInfo.getIndexFromColumnsInfoByName(columnsInfo2,
+					foreignKeyDefinition.referencingColumnNames.get(i));
+			
+//			System.out.println(valueList.get(index1).data + "  " + valueList2.get(index2).data);
+//			System.out.println(valueList.get(index1).isEqual(valueList2.get(index2)));
+//			System.out.println(valueList.get(index1).data.length() + "  " + valueList2.get(index2).data.length());
+			if (!valueList.get(index1).isEqual(valueList2.get(index2))) {
+				return false;
+			}			
+		}
+			
+		return true;
+	}
+	
+	public static void cascadeDelete(Cursor cursor, Environment myDbEnvironment,
+	DatabaseConfig dbConfig, Database myDatabase3, Cursor cursor3, String tableName,
+	ArrayList<ColumnInfo> columnsInfo, ArrayList<Value> valueList) throws Exception {
+	// TEST
+//		for (int i = 0 ; i < valueList.size() ; i++) {
+//			System.out.print(valueList.get(i).data + "		");
+//		}
+//		System.out.println();
 		
+		DatabaseEntry foundKey = new DatabaseEntry();
+		DatabaseEntry foundData = new DatabaseEntry();
+
+		// iterating over tables and check if it references tableName
+		if (cursor.getFirst(foundKey, foundData, LockMode.DEFAULT) == OperationStatus.SUCCESS) {
+			do {
+				String keyString = new String(foundKey.getData(), "UTF-8");
+				String dataString = new String(foundData.getData(), "UTF-8");
+				
+				// create TableDefinition Object by dataString
+				TableDefinition tableDefinition = new TableDefinition(keyString, dataString);
+				int index = -1;
+				
+				for (int i = 0 ; i < tableDefinition.foreignKeyDefinitions.size() ; i++) {
+					ForeignKeyDefinition foreignKeyDefinition = tableDefinition.foreignKeyDefinitions.get(i);
+					if (foreignKeyDefinition.referencedTableName.equals(tableName)) {
+						index = i;
+					}
+				}
+				
+				if (index != -1) {
+					ForeignKeyDefinition foreignKeyDefinition = tableDefinition.foreignKeyDefinitions.get(index);
+					
+					myDatabase3 = myDbEnvironment.openDatabase(null, "dbdata."+keyString, dbConfig);
+					cursor3 = myDatabase3.openCursor(null, null);
+					
+					DatabaseEntry foundKey2 = new DatabaseEntry();
+					DatabaseEntry foundData2 = new DatabaseEntry();
+					
+					ArrayList<ColumnInfo> columnsInfo2 = ColumnInfo.getColumnsInfoFromTableDef(tableDefinition);
+					
+					if (cursor3.getFirst(foundKey2, foundData2, LockMode.DEFAULT) == OperationStatus.SUCCESS) {
+						do {
+							String keyString2 = new String(foundKey2.getData(), "UTF-8");
+							
+							ArrayList<Value> valueList2 = Conversion.bytesToValues(columnsInfo2,
+									foundKey2.getData(), foundData2.getData());
+							
+							// TEST
+//							for (int i = 0 ; i < valueList2.size() ; i++) {
+//								System.out.print(valueList2.get(i).data + "		");
+//							}
+							
+							if (isForeignKeyEqual(foreignKeyDefinition, columnsInfo, valueList, columnsInfo2, valueList2)) {
+								for (int j = 0 ; j < foreignKeyDefinition.referencingColumnNames.size() ; j++) {
+									cursor3.delete();
+									int index2 = tableDefinition.findColumn(foreignKeyDefinition.referencingColumnNames.get(j));
+									valueList2.get(index2).setNull();
+									
+									// check InsertDuplicatePrimaryKeyError and put data
+									ArrayList<Byte> keyBytesArrayList = new ArrayList<Byte>();
+									ArrayList<Byte> dataBytesArrayList = new ArrayList<Byte>();
+
+									Conversion.getByteRepresentation(tableDefinition, valueList2, keyBytesArrayList, dataBytesArrayList);
+
+									byte[] keyBytes = new byte[keyBytesArrayList.size()];
+									for (int i = 0 ; i < keyBytes.length ; i++) {
+										keyBytes[i] = keyBytesArrayList.get(i);
+									}
+
+									byte[] dataBytes = new byte[dataBytesArrayList.size()];
+									for (int i = 0 ; i < dataBytes.length ; i++) {
+										dataBytes[i] = dataBytesArrayList.get(i);
+									}
+									
+									DatabaseEntry key = new DatabaseEntry(keyBytes);
+									DatabaseEntry data = new DatabaseEntry(dataBytes);
+									
+									cursor3.put(key, data);
+								}
+							}
+							
+						} while (cursor3.getNext(foundKey2, foundData2, LockMode.DEFAULT) == OperationStatus.SUCCESS);
+					}
+					
+					if (cursor3 != null) cursor3.close();
+					if (myDatabase3 != null) myDatabase3.close();
+				}
+				
+			} while (cursor.getNext(foundKey, foundData, LockMode.DEFAULT) == OperationStatus.SUCCESS);
+		}
 	}
 }

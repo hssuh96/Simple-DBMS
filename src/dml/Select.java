@@ -81,7 +81,7 @@ public class Select {
 			ArrayList<ColumnInfo> columnsInfo = ColumnInfo.getColumnsInfoFromTableDef(tableDefinitions, referedTableList);
 			WhereErrorFlag whereErrorFlag = new WhereErrorFlag();
 			
-			// TODO : TEST
+			// TEST
 //			for (int i = 0 ; i < columnsInfo.size() ; i++) {
 //				columnsInfo.get(i).print();
 //			}
