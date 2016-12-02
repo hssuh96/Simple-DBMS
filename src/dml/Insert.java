@@ -103,6 +103,7 @@ public class Insert {
 				}
 			}
 			else { // columns specified
+				newColumnNameList = columnNameList;
 				// check if column exists
 				for (int i = 0 ; i < columnNameList.size() ; i++) {
 					if (tableDefinition.findColumn(columnNameList.get(i)) == -1){
