@@ -73,18 +73,12 @@ public class Select {
 				}
 				else {
 					tableDefinitions.add(new TableDefinition(referedTableList.get(i).tableName, schemaValue));
-//					tableDefinitions.get(tableDefinitions.size()-1).print(); // TEST
 				}
 			}
 			
 			// columnsInfo is table renamed version
 			ArrayList<ColumnInfo> columnsInfo = ColumnInfo.getColumnsInfoFromTableDef(tableDefinitions, referedTableList);
 			WhereErrorFlag whereErrorFlag = new WhereErrorFlag();
-			
-			// TEST
-//			for (int i = 0 ; i < columnsInfo.size() ; i++) {
-//				columnsInfo.get(i).print();
-//			}
 			
 			if (evaluationTree != null) {
 				evaluationTree.checkErrorAndUpdateInfo(columnsInfo, whereErrorFlag);

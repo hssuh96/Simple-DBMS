@@ -315,8 +315,6 @@ public class TableDefinition {
 				// check ReferenceNonPrimaryKeyError (is referencedColumnNames contains all attributes of primary key)
 				if (foreignKeyDefinition.referencedColumnNames.size() !=
 						referencedTableDefinition.primaryKeyDefinition.size()) {
-//					System.out.println("YEAH"); // TODO
-//					System.out.println(foreignKeyDefinition.referencedColumnNames.size() + " " + referencedTableDefinition.primaryKeyDefinition.size());
 					ReferenceNonPrimaryKeyErrorFlag = true;
 					break;
 				}

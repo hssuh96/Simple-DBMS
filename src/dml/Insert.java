@@ -168,12 +168,6 @@ public class Insert {
 				}
 			}
 
-			//TEST
-//			for (int i = 0 ; i < valueListOrdered.size() ; i++) {
-//				valueListOrdered.get(i).print();
-//			}
-
-
 			// check InsertReferentialIntegrityError
 			for (int i = 0 ; i < tableDefinition.foreignKeyDefinitions.size() ; i++) {
 				ForeignKeyDefinition foreignKeyDefinition = tableDefinition.foreignKeyDefinitions.get(i);
@@ -244,23 +238,10 @@ public class Insert {
 				dataBytes[i] = dataBytesArrayList.get(i);
 			}
 			
-			// TEST
-//			for (int i = 0 ; i < keyBytes.length ; i++) {
-//				System.out.print(keyBytes[i] + " ");
-//			}
-//			System.out.println();
-//			for (int i = 0 ; i < dataBytes.length ; i++) {
-//				System.out.print(dataBytes[i] + " ");
-//			}
-//			System.out.println();
-			
-			
 			cursor2 = myDatabase2.openCursor(null, null);
 			
 			DatabaseEntry key = new DatabaseEntry(keyBytes);
 			DatabaseEntry data = new DatabaseEntry(dataBytes);
-			
-//			System.out.println(new String(key.getData())); //TEST
 			
 			if (key.getData().length == 0) {
 				byte[] keyAlternative = new byte[4];

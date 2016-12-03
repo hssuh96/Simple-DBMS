@@ -23,13 +23,6 @@ public class Conversion {
 				}
 			}
 		}
-//		if (keyBytesArrayList.size() == 0)
-			
-		
-		// TODO : TEST
-//		for (int i = 0 ; i < keyBytesArrayList.size() ; i++)
-//			System.out.print(keyBytesArrayList.get(i));
-//		System.out.println();
 	}
 	
 	public static byte[] getByteRepresentation(TableDefinition referedTableDefinition, ArrayList<Value> valueListOrdered) {
@@ -54,7 +47,6 @@ public class Conversion {
 		return resultByte;
 	}
 	
-	// TODO : check for empty primary key tables
 	public static ArrayList<Value> bytesToValues(ArrayList<ColumnInfo> columnsInfo,
 			byte[] keyByteArray, byte[] dataByteArray) { // should give concatenated byte array if many tables
 		ArrayList<Value> valueList = new ArrayList<Value>();

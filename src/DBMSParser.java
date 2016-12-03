@@ -43,11 +43,11 @@ public class DBMSParser implements DBMSParserConstants {
       try {
         parser.command();
       } catch (ParseException e) {
-//        e.printStackTrace(); // TEST
+//        e.printStackTrace();
         executeCommand(PRINT_SYNTAX_ERROR);
         DBMSParser.ReInit(System.in);
       } catch (Exception e) {
-        e.printStackTrace();
+//        e.printStackTrace();
         System.out.println("UnexpectedError");
         System.out.print("DB_2015-11543> ");
         DBMSParser.ReInit(System.in);

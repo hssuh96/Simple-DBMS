@@ -150,11 +150,6 @@ public class Delete {
 	public static boolean checkReferentialIntegrity(Cursor cursor, Environment myDbEnvironment,
 			DatabaseConfig dbConfig, Database myDatabase3, Cursor cursor3, String tableName,
 			ArrayList<ColumnInfo> columnsInfo, ArrayList<Value> valueList) throws Exception {
-		// TEST
-//		for (int i = 0 ; i < valueList.size() ; i++) {
-//			System.out.print(valueList.get(i).data + "		");
-//		}
-//		System.out.println();
 		
 		DatabaseEntry foundKey = new DatabaseEntry();
 		DatabaseEntry foundData = new DatabaseEntry();
@@ -193,11 +188,6 @@ public class Delete {
 							
 							ArrayList<Value> valueList2 = Conversion.bytesToValues(columnsInfo2,
 									foundKey2.getData(), foundData2.getData());
-							
-							// TEST
-//							for (int i = 0 ; i < valueList2.size() ; i++) {
-//								System.out.print(valueList2.get(i).data + "		");
-//							}
 							
 							if (isForeignKeyEqual(foreignKeyDefinition, columnsInfo, valueList, columnsInfo2, valueList2)) {
 								for (int j = 0 ; j < foreignKeyDefinition.referencingColumnNames.size() ; j++) {
@@ -236,9 +226,6 @@ public class Delete {
 			int index2 = ColumnInfo.getIndexFromColumnsInfoByName(columnsInfo2,
 					foreignKeyDefinition.referencingColumnNames.get(i));
 			
-//			System.out.println(valueList.get(index1).data + "  " + valueList2.get(index2).data);
-//			System.out.println(valueList.get(index1).isEqual(valueList2.get(index2)));
-//			System.out.println(valueList.get(index1).data.length() + "  " + valueList2.get(index2).data.length());
 			if (!valueList.get(index1).isEqual(valueList2.get(index2))) {
 				return false;
 			}			
@@ -250,11 +237,6 @@ public class Delete {
 	public static void cascadeDelete(Cursor cursor, Environment myDbEnvironment,
 	DatabaseConfig dbConfig, Database myDatabase3, Cursor cursor3, String tableName,
 	ArrayList<ColumnInfo> columnsInfo, ArrayList<Value> valueList) throws Exception {
-	// TEST
-//		for (int i = 0 ; i < valueList.size() ; i++) {
-//			System.out.print(valueList.get(i).data + "		");
-//		}
-//		System.out.println();
 		
 		DatabaseEntry foundKey = new DatabaseEntry();
 		DatabaseEntry foundData = new DatabaseEntry();
@@ -293,11 +275,6 @@ public class Delete {
 							
 							ArrayList<Value> valueList2 = Conversion.bytesToValues(columnsInfo2,
 									foundKey2.getData(), foundData2.getData());
-							
-							// TEST
-//							for (int i = 0 ; i < valueList2.size() ; i++) {
-//								System.out.print(valueList2.get(i).data + "		");
-//							}
 							
 							if (isForeignKeyEqual(foreignKeyDefinition, columnsInfo, valueList, columnsInfo2, valueList2)) {
 								for (int j = 0 ; j < foreignKeyDefinition.referencingColumnNames.size() ; j++) {

@@ -13,25 +13,6 @@ import com.sleepycat.je.EnvironmentConfig;
 import com.sleepycat.je.OperationStatus;
 
 public class DatabaseOperation {
-//	public static void openDatabase(Environment myDbEnvironment, Database myDatabase, String pathName, String fileName) {
-//		// Open Database Environment or if not, create one.
-//		EnvironmentConfig envConfig = new EnvironmentConfig();
-//		envConfig.setAllowCreate(true);
-//		myDbEnvironment = new Environment(new File(pathName), envConfig);
-//			
-//		// Open Database or if not, create one.
-//		DatabaseConfig dbConfig = new DatabaseConfig();
-//		dbConfig.setAllowCreate(true);
-//		dbConfig.setSortedDuplicates(true);
-//		myDatabase = myDbEnvironment.openDatabase(null, fileName, dbConfig);
-//	}
-//	
-//	public static void close(Cursor cursor, Database myDatabase, Environment myDbEnvironment) {
-//		if (cursor != null) cursor.close();
-//		if (myDatabase != null) myDatabase.close();
-//		if (myDbEnvironment != null) myDbEnvironment.close();
-//	}
-	
 	// Search table by tableName and return schema value in String. return null if not found.
 	public static String searchTableSchemaByName(Cursor cursor, String tableName) throws Exception {
 		try {
