@@ -1,0 +1,9 @@
+select a.title as COURSE_TITLE, b.title as PREREQ_TITLE
+from course as a, course as b, prereq
+where a.course_id = prereq.course_id
+and b.course_id = prereq.prereq_id;
+
+
+select student.id, student.name, course.title, course.credits, takes.grade
+from student, takes, course
+where student.id = takes.id and takes.course_id = course.course_id;

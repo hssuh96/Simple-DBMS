@@ -1,0 +1,103 @@
+create table classroom
+    (building       char(15),
+     room_number        char(7),
+     capacity       int,
+     primary key (building, room_number)
+    );
+
+create table department
+    (dept_name      char(20),
+     building       char(15),
+     budget             int,
+     primary key (dept_name)
+    );
+
+create table course
+    (course_id      char(8),
+     title          char(50),
+     dept_name      char(20),
+     credits        int,
+     primary key (course_id),
+     foreign key (dept_name) references department(dept_name)
+    );
+
+create table instructor
+    (ID         char(5),
+     name           char(20) not null,
+     dept_name      char(20),
+     salary         int,
+     primary key (ID),
+     foreign key (dept_name) references department(dept_name)
+    );
+
+create table section
+    (course_id      char(8),
+         sec_id         char(8),
+     semester       char(6),
+     year           int,
+     building       char(15),
+     room_number        char(7),
+     time_slot_id       char(4),
+     primary key (course_id, sec_id, semester, year),
+     foreign key (course_id) references course(course_id),
+     foreign key (building, room_number) references classroom(building, room_number)
+    );
+
+create table teaches
+    (ID         char(5),
+     course_id      char(8),
+     sec_id         char(8),
+     semester       char(6),
+     year           int,
+     primary key (ID, course_id, sec_id, semester, year),
+     foreign key (course_id,sec_id, semester, year) references section(course_id,sec_id, semester, year),
+     foreign key (ID) references instructor(ID)
+    );
+
+create table student
+    (ID         char(5),
+     name           char(20) not null,
+     dept_name      char(20),
+     tot_cred       int,
+     primary key (ID),
+     foreign key (dept_name) references department(dept_name)
+    );
+
+create table takes
+    (ID         char(5),
+     course_id      char(8),
+     sec_id         char(8),
+     semester       char(6),
+     year           int,
+     grade              char(2),
+     primary key (ID, course_id, sec_id, semester, year),
+     foreign key (course_id,sec_id, semester, year) references section(course_id,sec_id, semester, year),
+     foreign key (ID) references student(ID)
+    );
+
+create table advisor
+    (s_ID           char(5),
+     i_ID           char(5),
+     primary key (s_ID),
+     foreign key (i_ID) references instructor (ID),
+     foreign key (s_ID) references student (ID)
+    );
+
+create table time_slot
+    (time_slot_id       char(4),
+     day            char(1),
+     start_hr       int,
+     start_min      int,
+     end_hr         int,
+     end_min        int,
+     primary key (time_slot_id, day, start_hr, start_min)
+    );
+
+create table prereq
+    (course_id      char(8),
+     prereq_id      char(8),
+     primary key (course_id, prereq_id),
+     foreign key (course_id) references course(course_id),
+     foreign key (prereq_id) references course(course_id)
+    );
+
